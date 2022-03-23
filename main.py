@@ -17,9 +17,8 @@ import os
 Base = declarative_base()
 
 app = Flask(__name__)
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
-# os.environ.get("SECRET_KEY")
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['DEBUG'] = True
 
 ckeditor = CKEditor(app)
 Bootstrap(app)
@@ -242,4 +241,4 @@ def delete_post(post_id):
 
 if __name__ == "__main__":
     # app.run(host='0.0.0.0', port=5000)
-    app.run(debug=True)
+    app.run()
