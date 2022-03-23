@@ -15,10 +15,10 @@ from sqlalchemy.ext.declarative import declarative_base
 import os
 
 Base = declarative_base()
-
+# os.environ.get('SECRET_KEY')
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.config['DEBUG'] = True
+app.config['SECRET_KEY'] = '8BYkEfBA6p6donzWlSihBXox7C0sKR6b'
+app.config['APP_SETTINGS'] = os.environ.get('APP_SETTINGS')
 
 ckeditor = CKEditor(app)
 Bootstrap(app)
