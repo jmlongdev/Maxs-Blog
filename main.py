@@ -12,13 +12,14 @@ from functools import wraps
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-import os
+from os import environ 
 
 Base = declarative_base()
 # os.environ.get('SECRET_KEY')
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6p6donzWlSihBXox7C0sKR6b'
-app.config['APP_SETTINGS'] = os.environ.get('APP_SETTINGS')
+
+app.config['SECRET_KEY'] = environ.get('SECRET_KEY')
+app.config['DEBUG'] = environ.get("DEBUG")
 
 ckeditor = CKEditor(app)
 Bootstrap(app)
@@ -40,7 +41,7 @@ class Anonymous(AnonymousUserMixin):
 
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///blog.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get("DATABASE_URL", "sqlite:///blog.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
