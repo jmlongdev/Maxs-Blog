@@ -15,7 +15,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from os import environ 
 
 Base = declarative_base()
-# os.environ.get('SECRET_KEY')
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = environ.get('SECRET_KEY')
