@@ -5,7 +5,7 @@ from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user, AnonymousUserMixin
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
@@ -17,7 +17,10 @@ import os
 Base = declarative_base()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
+# os.environ.get("SECRET_KEY")
+
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
@@ -31,12 +34,19 @@ gravatar = Gravatar(app,
                     base_url=None)
 
 
+class Anonymous(AnonymousUserMixin):
+    def __init__(self):
+        self.username = "Guest"
+        self.email = "Guest"
+
+
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///blog.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.anonymous_user = Anonymous
 
 
 @login_manager.user_loader
@@ -54,6 +64,7 @@ class User(UserMixin, db.Model):
     comments = relationship("Comment", back_populates="comment_author")
     # the posts are the children
     posts = relationship("BlogPost", back_populates="author")
+
 
 
 class BlogPost(db.Model):
@@ -81,7 +92,7 @@ class Comment(db.Model):
     comment_author = relationship("User", back_populates='comments')
     post_id = db.Column(db.Integer, db.ForeignKey('blog_posts.id'))
     parent_post = relationship("BlogPost", back_populates='comments')
-# db.create_all()
+db.create_all()
 
 
 @app.route('/')
@@ -93,7 +104,7 @@ def get_all_posts():
 def admin_only(f):
     @wraps(f)
     def decorator_function(*args, **kwargs):
-        if current_user.id != 1:
+        if current_user.email != 'jmlong.dev@gmail.com':
             return abort(403)
         return f(*args, **kwargs)
     return decorator_function
@@ -197,7 +208,7 @@ def add_new_post():
     return render_template("make-post.html", form=form, logged_in=current_user.is_authenticated)
 
 
-@app.route("/edit-post/<int:post_id>")
+@app.route("/edit-post/<int:post_id>", methods=["POST", "GET"])
 @admin_only
 def edit_post(post_id):
     post = BlogPost.query.get(post_id)
@@ -212,7 +223,7 @@ def edit_post(post_id):
         post.title = edit_form.title.data
         post.subtitle = edit_form.subtitle.data
         post.img_url = edit_form.img_url.data
-        post.author = edit_form.author.data
+        # post.author = edit_form.author.data
         post.body = edit_form.body.data
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
